@@ -58,10 +58,11 @@ struct t4_reg32_cmd {
 
 #define	T6_REGDUMP_SIZE (332 * 1024)
 #define	T5_REGDUMP_SIZE (332 * 1024)
+
 struct t4_regdump {
 	uint32_t  version;
 	uint32_t  len;
-	uint8_t   *data;
+	uint32_t data[0];
 };
 
 struct t4_sge_context {

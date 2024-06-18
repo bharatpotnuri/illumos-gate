@@ -59,6 +59,8 @@ t4_ioctl(struct adapter *sc, int cmd, void *data, int mode)
 		rc = pci_rw(sc, data, mode, cmd == T4_IOCTL_PCIPUT32);
 		break;
 	case T4_IOCTL_GET32:
+		rc = reg_rw(sc, data, mode, cmd == T4_IOCTL_PUT32);
+		break;
 	case T4_IOCTL_PUT32:
 		rc = reg_rw(sc, data, mode, cmd == T4_IOCTL_PUT32);
 		break;
@@ -1540,10 +1542,12 @@ regdump(struct adapter *sc, void *data, int flags)
 	for (i = 0; i < arr_size; i += 2)
 		reg_block_dump(sc, buf, reg_ranges[i], reg_ranges[i + 1]);
 
-	if (ddi_copyout(buf, r.data, r.len, flags) < 0)
+	/* Copyout device log buffer and then carrier buffer */
+	if (ddi_copyout(buf, (void *)((uintptr_t)data + sizeof(r)), r.len,
+			flags) < 0)
 		rc = EFAULT;
 
-	if (rc == 0 && ddi_copyout(&r, data, sizeof (r), flags) < 0)
+	if (ddi_copyout(&r, data, sizeof(r), flags) < 0)
 		rc = EFAULT;
 
 	kmem_free(buf, buf_size);
